@@ -172,3 +172,19 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+data/
+cache/
+ckpt/
+
+models/
+checkpoint*/
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.safetensors
+
+*.bin
+wandb/

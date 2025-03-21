@@ -1,0 +1,1 @@
+python train.py --epoch 20 --batch_size 64 --learning_rate 0.0001

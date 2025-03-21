@@ -1,0 +1,3 @@
+Running with window=3, vector_size=16, sg=1, epochs=2, seed=42
+Similarity between '岳不群' and '林平之': 0.9682412
+Similarity between '岳不群' and '岳灵珊': 0.9583851

@@ -1,0 +1,12 @@
+Accuracy: 0.9908
+Precision: 0.9909
+Recall: 0.9908
+F1-score: 0.9908
+========================================
+Misclassified Samples (showing 5 examples):
+Index: 151, True Label: 9, Predicted: 8
+Index: 211, True Label: 5, Predicted: 8
+Index: 445, True Label: 6, Predicted: 0
+Index: 449, True Label: 3, Predicted: 5
+Index: 716, True Label: 1, Predicted: 7
+========================================
