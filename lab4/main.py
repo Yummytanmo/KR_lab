@@ -24,7 +24,7 @@ class Trainer:
                  optimizer=None,
                  schedule=None,
                  epochs=1,
-                 device="cpu"if torch.cuda.is_available() else "cpu",
+                 device="cuda"if torch.cuda.is_available() else "cpu",
                  id2label=None):
         self.output_dir = output_dir
         self.model = model
@@ -147,7 +147,7 @@ def main(data_name):
     with open(os.path.join(args.output_dir, "ner_args.json"), "w") as fp:
         json.dump(vars(args), fp, ensure_ascii=False, indent=2)
 
-    tokenizer = BertTokenizer.from_pretrained(args.bert_dir)
+    tokenizer = BertTokenizer.from_pretrained("hfl/chinese-bert-wwm-ext", cache_dir=args.bert_dir)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with open(os.path.join(args.data_path, "train.txt"), "r", encoding="utf-8") as fp:
@@ -162,14 +162,12 @@ def main(data_name):
     train_dataset = NerDataset(
         data=train_data,
         tokenizer=tokenizer,
-        max_seq_len=args.max_seq_len,
-        label2id=args.label2id
+        args=args
     )
     dev_dataset = NerDataset(
         data=dev_data,
         tokenizer=tokenizer,
-        max_seq_len=args.max_seq_len,
-        label2id=args.label2id
+        args=args
     )
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=args.train_batch_size, num_workers=2)
     dev_loader = DataLoader(dev_dataset, shuffle=False, batch_size=args.dev_batch_size, num_workers=2)

@@ -188,3 +188,5 @@ checkpoint*/
 
 *.bin
 wandb/
+
+model_hub/

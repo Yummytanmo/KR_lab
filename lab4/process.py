@@ -113,5 +113,5 @@ if __name__ == "__main__":
 
     ## todo 补全训练集和验证集的处理结果保存地址
     processDuieData.get_ner_data(processDuieData.train_file,
-                                os.path.join(processDuieData.data_path, "ner_train.json"))
-    processDuieData.get_ner_data(processDuieData.dev_file, os.path.join(processDuieData.data_path, "ner_dev.json"))
+                                os.path.join(processDuieData.data_path, "ner_data/train.txt"))
+    processDuieData.get_ner_data(processDuieData.dev_file, os.path.join(processDuieData.data_path, "ner_data/dev.txt"))

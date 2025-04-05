@@ -13,8 +13,8 @@ class ModelOutput:
 class BertNer(nn.Module):
   def __init__(self, args):
     super(BertNer, self).__init__()
-    self.bert = BertModel.from_pretrained(args.bert_dir)
-    self.bert_config = BertConfig.from_pretrained(args.bert_dir)
+    self.bert = BertModel.from_pretrained("hfl/chinese-bert-wwm-ext", cache_dir=args.bert_dir)
+    self.bert_config = BertConfig.from_pretrained("hfl/chinese-bert-wwm-ext", cache_dir=args.bert_dir)
     hidden_size = self.bert_config.hidden_size
     self.lstm_hiden = 128
     self.max_seq_len = args.max_seq_len
