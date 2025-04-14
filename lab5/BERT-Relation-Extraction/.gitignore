@@ -13,3 +13,5 @@
 /__pycache__/*
 venv
 .DS_Store
+en_core_web_lg-2.2.5/
+en_core_web_lg-2.2.5.tar.gz
