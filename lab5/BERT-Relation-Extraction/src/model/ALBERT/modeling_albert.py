@@ -587,15 +587,18 @@ class AlbertModel(AlbertPreTrainedModel):
         sequence_output = encoder_outputs[0]
         
         ### two heads: LM and blanks ###
-        blankv1v2 = sequence_output[:, e1_e2_start, :]
+        blankv1v2 = sequence_output[:, 0, :]  # Use [CLS] token instead of e1_e2_start
         buffer = []
         for i in range(blankv1v2.shape[0]): # iterate batch & collect
-            v1v2 = blankv1v2[i, i, :, :]
-            v1v2 = torch.cat((v1v2[0], v1v2[1]))
+            v1v2 = blankv1v2[i, :]
             buffer.append(v1v2)
         del blankv1v2
         v1v2 = torch.stack([a for a in buffer], dim=0)
         del buffer
+
+        # Adjust v1v2 to match the expected input size of classification_layer
+        if v1v2.shape[1] != self.classification_layer.in_features:
+            v1v2 = torch.cat([v1v2, v1v2], dim=1)  # Duplicate features to match size
         
         if self.task is None:
             blanks_logits = self.activation(v1v2) # self.sigmoid(self.blanks_linear( - torch.log(Q))
