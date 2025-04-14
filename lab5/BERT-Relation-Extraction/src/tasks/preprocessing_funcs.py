@@ -52,7 +52,7 @@ def preprocess_semeval2010_8(args):
     Data preprocessing for SemEval2010 task 8 dataset
     '''
 
-    data_path = args.train_data #'./data/SemEval2010_task8_all_data/SemEval2010_task8_training/TRAIN_FILE.TXT'
+    data_path = './data/SemEval2010_task8_all_data/SemEval2010_task8_training/TRAIN_FILE.TXT'
     logger.info("Reading training file %s..." % data_path)
     with open(data_path, 'r', encoding='utf8') as f:
         text = f.readlines()
@@ -60,7 +60,7 @@ def preprocess_semeval2010_8(args):
     sents, relations, comments, blanks = process_text(text, 'train')
     df_train = pd.DataFrame(data={'sents': sents, 'relations': relations})
     
-    data_path = args.test_data #'./data/SemEval2010_task8_all_data/SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT'
+    data_path = './data/SemEval2010_task8_all_data/SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT'
     logger.info("Reading test file %s..." % data_path)
     with open(data_path, 'r', encoding='utf8') as f:
         text = f.readlines()
