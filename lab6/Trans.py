@@ -42,15 +42,20 @@ class TransE(nn.Module):
         positive_distances, norms = self.distance(h_idx, r_idx, t_idx)
         negative_distances, _ = self.distance(h_idx_neg, r_idx_neg, t_idx_neg)
         loss = self.loss(positive_distances, negative_distances)
-        return loss + norms
+        # 将正则化项加入到损失中
+        total_loss = loss + self.alpha * norms
+        return total_loss
     
-    def predict(self, h_idx, r_idx):
-        h_embs = self.ent_embeddings(h_idx)
-        r_embs = self.rel_embeddings(r_idx)
-        scores = h_embs + r_embs
-        scores = scores.norm(p=self.norm, dim=1)
+    def predict(self, h_idx, r_idx, entities):
+        h_idx = h_idx.to(self.device)
+        r_idx = r_idx.to(self.device)
+        entities = entities.to(self.device)
+        h_embs = self.ent_embeddings(h_idx).unsqueeze(1).repeat(1, entities.size(0), 1)
+        r_embs = self.rel_embeddings(r_idx).unsqueeze(1).repeat(1, entities.size(0), 1)
+        t_embs = self.ent_embeddings(entities).unsqueeze(0).repeat(h_idx.size(0), 1, 1)
+        scores = h_embs + r_embs - t_embs
+        scores = scores.norm(p=self.norm, dim=2) # [batch, ent_num]
         return scores
-    
 
 class TransH(nn.Module):
     def __init__(self,):
