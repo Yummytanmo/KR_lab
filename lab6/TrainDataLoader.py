@@ -33,12 +33,11 @@ class TrainDataset(Dataset):
     def __getitem__(self, idx):
         # 根据索引返回一个样本
         triple = self.triples[idx]
-        head, tail, relation = map(lambda x: self.entity2id.get(x, -1) if x in self.entity2id else self.relation2id.get(x, -1), triple)
+        head, tail, relation = map(lambda x: self.entity2id.get(x) if x in self.entity2id else self.relation2id.get(x), triple)
         negative_samples = self._generate_negative_samples(head, tail, relation)
+        positive_sample = (head, tail, relation)
         return {
-            "head": head,
-            "tail": tail,
-            "relation": relation,
+            "positive_sample": positive_sample,
             "negative_samples": negative_samples,
         }
 
@@ -68,14 +67,10 @@ class TrainDataLoader:
 
     def collate_fn(self, batch):
         # 自定义批处理函数，用于将样本整理成批次
-        heads = torch.tensor([item["head"] for item in batch], dtype=torch.long)
-        tails = torch.tensor([item["tail"] for item in batch], dtype=torch.long)
-        relations = torch.tensor([item["relation"] for item in batch], dtype=torch.long)
+        positive_samples = [item["positive_sample"] for item in batch]
         negative_samples = [item["negative_samples"] for item in batch]
         return {
-            "heads": heads,
-            "tails": tails,
-            "relations": relations,
+            "positive_samples": positive_samples,
             "negative_samples": negative_samples,
         }
 
