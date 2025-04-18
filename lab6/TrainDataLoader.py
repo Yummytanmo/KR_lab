@@ -49,19 +49,19 @@ class TransDataset(Dataset):
 
     def _generate_negative_samples(self, head, tail, relation):
         # 生成负采样数据
-        if self.neg_ent:
+        if np.random.rand() < 0.5:
             neg_head = np.random.choice(len(self.entities))
             neg_sample = {
                 "h_id": neg_head,
                 "t_id": tail,
                 "r_id": relation,
             }
-        if self.neg_rel:
-            neg_rel = np.random.choice(len(self.relations))
+        else:
+            neg_tail = np.random.choice(len(self.entities))
             neg_sample = {
                 "h_id": head,
-                "t_id": tail,
-                "r_id": neg_rel,
+                "t_id": neg_tail,
+                "r_id": relation,
             }
         return neg_sample
 

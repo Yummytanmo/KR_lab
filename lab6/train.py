@@ -17,13 +17,13 @@ alpha = 0.01
 learning_rate = 0.001
 epochs = 50
 save_path = "./WN18_model/"
-device = torch.device("mps")
+device = torch.device("cuda")
 
 if __name__ == "__main__":
     # 创建数据加载器
     train_loader = TransDataLoader(in_path=in_path, batch_size=batch_size, neg_ent=neg_ent, neg_rel=neg_rel, num_workers=num_workers, filename="train.txt")
     test_loader = TransDataLoader(in_path=in_path, batch_size=batch_size, neg_ent=neg_ent, neg_rel=neg_rel, num_workers=num_workers, filename="test.txt")
-
+    val_loader = TransDataLoader(in_path=in_path, batch_size=batch_size, neg_ent=neg_ent, neg_rel=neg_rel, num_workers=num_workers, filename="valid.txt")
     # 初始化模型
     ent_num = len(train_loader.dataset.entity2id)
     rel_num = len(train_loader.dataset.relation2id)
@@ -41,6 +41,7 @@ if __name__ == "__main__":
         model=model,
         train_loader=train_loader,
         test_loader=test_loader,
+        val_loader=val_loader,
         optimizer=optimizer,
         epochs=epochs,
         save_path=save_path,

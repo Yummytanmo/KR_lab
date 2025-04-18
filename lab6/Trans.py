@@ -42,9 +42,7 @@ class TransE(nn.Module):
         positive_distances, norms = self.distance(h_idx, r_idx, t_idx)
         negative_distances, _ = self.distance(h_idx_neg, r_idx_neg, t_idx_neg)
         loss = self.loss(positive_distances, negative_distances)
-        # 将正则化项加入到损失中
-        total_loss = loss + self.alpha * norms
-        return total_loss
+        return loss
     
     def predict(self, h_idx, r_idx, entities):
         h_idx = h_idx.to(self.device)

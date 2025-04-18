@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 from torch.autograd import Variable
 import torch.optim as optim
 import os
@@ -14,9 +15,10 @@ from tqdm import tqdm
 
 
 class Trainer:
-    def __init__(self, model, train_loader, test_loader, optimizer, epochs, checkpoint_path, save_path, save_steps, device, alpha=0.5):
+    def __init__(self, model, train_loader, val_loader,test_loader, optimizer, epochs, checkpoint_path, save_path, save_steps, device, alpha=0.5):
         self.model = model
         self.train_loader = train_loader
+        self.val_loader = val_loader
         self.test_loader = test_loader
         self.optimizer = optimizer
         self.epochs = epochs
@@ -45,56 +47,97 @@ class Trainer:
         )
         loss.backward()
         self.optimizer.step()
+        # # 要求所有实体和关系嵌入在更新后都保持单位范数，否则随着训练继续，向量长度会偏离，导致距离函数失效
+        # with torch.no_grad():
+        #     self.model.ent_embeddings.weight.data = F.normalize(
+        #         self.model.ent_embeddings.weight.data, p=2, dim=1
+        #     )
+        #     self.model.rel_embeddings.weight.data = F.normalize(
+        #         self.model.rel_embeddings.weight.data, p=2, dim=1
+        #     )
+
         return loss.item()
 
     def train(self):
         self.model.train()
-        # Fixing the issue by wrapping the range with `range()` to make it iterable
-        epoch_range = tqdm(range(self.epochs), desc="Epochs", unit="epoch")
-        train_range = tqdm(self.train_loader, desc="Training", unit="batch")
+        epoch_range = tqdm(
+            range(self.epochs),
+            desc="Epochs",
+            unit="epoch"
+        )
+
         for epoch in epoch_range:
             total_loss = 0.0
+
+            # 每个 epoch 内部新建批次进度条
+            train_range = tqdm(
+                self.train_loader,
+                desc=f"Epoch {epoch+1}/{self.epochs} Batches",
+                unit="batch",
+                total=len(self.train_loader),
+                leave=False
+            )
+
             for step, data in enumerate(train_range):
+                # show data
+                print(data)
                 loss = self.train_one_step(data)
                 total_loss += loss
-                train_range.set_description(f"Epoch {epoch+1}/{self.epochs} - Loss: {loss:.4f}")
+
+                # 只更新 postfix，显示当前 loss
+                train_range.set_postfix(loss=f"{loss:.4f}")
                 train_range.refresh()
+
             avg_loss = total_loss / len(self.train_loader)
-            epoch_range.set_description(f"Epoch {epoch+1}/{self.epochs} - Avg Loss: {avg_loss:.4f}")
+            # 更新外层进度条的 postfix，显示平均 loss
+            epoch_range.set_postfix(avg_loss=f"{avg_loss:.4f}")
             epoch_range.refresh()
 
-            # Evaluate the model after each epoch
-            hits, mean_rank = self.evaluate(self.test_loader)
-            print(f"Epoch {epoch+1}/{self.epochs} - Hits@10: {hits:.4f} - Mean Rank: {mean_rank:.4f}")
-            # Save the best model based on Hits@10
-            
             if epoch % self.save_steps == 0:
+                hits, mean_rank = self.evaluate(self.val_loader)
+                print(
+                    f"Epoch {epoch+1}/{self.epochs} - "
+                    f"Avg Loss: {avg_loss:.4f} - "
+                    f"Hits@10: {hits:.4f} - "
+                    f"Mean Rank: {mean_rank:.4f}"
+                )
                 if hits > self.best_acc:
                     self.best_acc = hits
                     self.best_model = copy.deepcopy(self.model)
                     print(f"Model saved at epoch {epoch+1} with Hits@10: {hits:.4f}")
-                # Save the model checkpoint
-                torch.save(self.model.state_dict(), os.path.join(self.checkpoint_path, f"checkpoint_epoch_{epoch+1}.pth"))
+                checkpoint_file = os.path.join(
+                    self.checkpoint_path,
+                    f"checkpoint_epoch_{epoch+1}.pth"
+                )
+                torch.save(self.model.state_dict(), checkpoint_file)
                 print(f"Checkpoint saved at epoch {epoch+1}")
+
         print("Training completed.")
-        # Save the final model
-        torch.save(self.model.state_dict(), os.path.join(self.save_path, "final_model.pth"))
+        # 保存最终模型
+        final_file = os.path.join(self.save_path, "final_model.pth")
+        torch.save(self.model.state_dict(), final_file)
         print("Final model saved.")
-        # Evaluate the final model
-        hits, mean_rank = self.evaluate(self.test_loader)
-        print(f"Final model evaluation - Hits@10: {hits:.4f} - Mean Rank: {mean_rank:.4f}")
-        # Save the best model
+        # 最终评估
+        hits, mean_rank = self.evaluate(self.val_loader)
+        print(
+            f"Final model evaluation - "
+            f"Hits@10: {hits:.4f} - "
+            f"Mean Rank: {mean_rank:.4f}"
+        )
+        # 保存最优模型
         if self.best_model is not None:
-            torch.save(self.best_model.state_dict(), os.path.join(self.save_path, "best_model.pth"))
+            best_file = os.path.join(self.save_path, "best_model.pth")
+            torch.save(self.best_model.state_dict(), best_file)
             print("Best model saved.")
+            hits, mean_rank = self.evaluate(self.val_loader)
+            print(
+                f"Best model evaluation - "
+                f"Hits@10: {hits:.4f} - "
+                f"Mean Rank: {mean_rank:.4f}"
+            )
         else:
             print("No best model found during training.")
-        # Evaluate the best model
-        if self.best_model is not None:
-            hits, mean_rank = self.evaluate(self.test_loader)
-            print(f"Best model evaluation - Hits@10: {hits:.4f} - Mean Rank: {mean_rank:.4f}")
-        else:
-            print("No best model found during training.")
+
 
 
     def evaluate(self, data_loader):
