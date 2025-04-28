@@ -154,7 +154,7 @@ class Trainer:
                 relation = positive['r_id']
                 
                 scores = self.model.predict(
-                    head, relation, self.entities
+                    head, relation, tail
                 )
 
                 # scores为[batch, ent_num]，得到实际tail实体的score rank

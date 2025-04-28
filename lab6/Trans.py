@@ -44,15 +44,12 @@ class TransE(nn.Module):
         loss = self.loss(positive_distances, negative_distances)
         return loss
     
-    def predict(self, h_idx, r_idx, entities):
+    def predict(self, h_idx, r_idx, tail):
         h_idx = h_idx.to(self.device)
         r_idx = r_idx.to(self.device)
-        entities = entities.to(self.device)
-        h_embs = self.ent_embeddings(h_idx).unsqueeze(1).repeat(1, entities.size(0), 1)
-        r_embs = self.rel_embeddings(r_idx).unsqueeze(1).repeat(1, entities.size(0), 1)
-        t_embs = self.ent_embeddings(entities).unsqueeze(0).repeat(h_idx.size(0), 1, 1)
-        scores = h_embs + r_embs - t_embs
-        scores = scores.norm(p=self.norm, dim=2) # [batch, ent_num]
+        scores = torch.norm(self.ent_embeddings(h_idx)+self.rel_embeddings(r_idx)-self.ent_embeddings.weight,
+                            p=self.norm,
+                            dim=1)
         return scores
 
 class TransH(nn.Module):
